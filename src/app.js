@@ -1,15 +1,27 @@
 const express = require('express');
 const httpErrors = require('http-errors');
+const config = require('config');
+const mongoose = require('mongoose');
+
+const logger = require('./module/logger');
 
 const app = express();
 
-// Logger.
-app.use( (req, res, next) => {
-    const message = `${req.method} ${req.url} ${new Date()}`;
-    console.log(message);
+const { host, user, pass } = config.get('database');
+mongoose.connect(`mongodb+srv://${host}`, {
+    user,
+    pass,
+}).then(
+    conn => {
+        require('./seed/seeder');
+        console.log('Database is seeded!');
+    },
+).catch(
+    err => console.error(err),
+);
 
-    next();
-});
+// Logger.
+app.use( logger );
 
 app.use(express.static('public'));
 
